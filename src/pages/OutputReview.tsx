@@ -104,6 +104,13 @@ export default function OutputReview({ meetingId }: { meetingId: string }) {
     return [...set].sort();
   }, [allMeetings]);
 
+  const OUTPUT_LABELS: Record<OutputType, string> = {
+    minutes: 'Minutes',
+    actions: 'Actions',
+    raid: 'RAID',
+    status: 'Status Report',
+  };
+
   const handleRegenerate = async () => {
     if (!data?.meeting) return;
     setRegenerating(true);
@@ -143,13 +150,98 @@ export default function OutputReview({ meetingId }: { meetingId: string }) {
 
   const { meeting } = data;
 
+  const meetingsPanel = (
+    <div className="card mb-5 p-4">
+      <div className="flex flex-wrap items-end gap-3">
+        <div className="min-w-[220px] flex-1">
+          <label className="label">Search Meetings</label>
+          <div className="relative">
+            <Search size={16} className="pointer-events-none absolute left-3 top-2.5 text-slate-400" />
+            <input
+              className="input pl-9"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search by title or participant…"
+            />
+          </div>
+        </div>
+        <div>
+          <label className="label">Date</label>
+          <select className="input min-w-[140px]" value={dateFilter} onChange={(e) => setDateFilter(e.target.value)}>
+            <option value="all">All Dates</option>
+            <option value="week">This Week</option>
+            <option value="month">This Month</option>
+          </select>
+        </div>
+        <div>
+          <label className="label">Person</label>
+          <select className="input min-w-[140px]" value={personFilter} onChange={(e) => setPersonFilter(e.target.value)}>
+            <option value="">All People</option>
+            {allPeople.map((p) => (
+              <option key={p} value={p}>
+                {p}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+      {(search.trim() || dateFilter !== 'all' || personFilter) && (
+        <p className="mt-3 border-t border-slate-100 pt-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
+          Search results
+        </p>
+      )}
+      <div className={search.trim() || dateFilter !== 'all' || personFilter ? 'mt-2' : 'mt-3 border-t border-slate-100 pt-3'}>
+        {filteredMeetings.length === 0 ? (
+          <p className="text-sm text-slate-500">No meetings found</p>
+        ) : (
+          <ul className="space-y-1">
+            {filteredMeetings.slice(0, 5).map((m) => (
+              <li key={m.id}>
+                <button
+                  className={`w-full rounded-lg px-3 py-2 text-left text-sm transition hover:bg-slate-100 ${
+                    m.id === meeting?.id ? 'bg-brand-50 font-medium text-brand-700' : 'text-slate-700'
+                  }`}
+                  onClick={() => navigate(`/outputs/review/${m.id}`)}
+                >
+                  <span>
+                    {m.title} <span className="text-xs text-slate-400">· {m.project_client} · {formatDate(m.meeting_date)}</span>
+                  </span>
+                  {m.outputs_generated && m.selected_outputs.length > 0 && (
+                    <span className="mt-1 flex flex-wrap gap-1">
+                      {m.selected_outputs.map((o) => (
+                        <span key={o} className="badge bg-emerald-50 px-1.5 py-0 text-[10px] text-emerald-700">
+                          {OUTPUT_LABELS[o] ?? o}
+                        </span>
+                      ))}
+                    </span>
+                  )}
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </div>
+  );
+
   if (!meeting) {
     return (
-      <div className="mx-auto max-w-6xl text-center">
-        <PageHeader title="Meeting not found." />
-        <button className="btn-primary" onClick={() => navigate('/dashboard')}>
-          Back to Dashboard
-        </button>
+      <div className="mx-auto max-w-6xl">
+        <PageHeader title="Output Review Workspace" subtitle="Review and refine AI-generated meeting outputs." />
+        {allMeetings.length === 0 ? (
+          <div className="card mb-5 flex flex-col items-center gap-3 p-10 text-center">
+            <p className="text-sm font-medium text-slate-700">No meetings yet.</p>
+            <p className="text-xs text-slate-500">Create a meeting with a transcript, generate outputs, then review them here.</p>
+            <button className="btn-primary" onClick={() => navigate('/meetings/new')}>
+              Create a Meeting
+            </button>
+          </div>
+        ) : (
+          <>
+            <p className="mb-3 text-sm text-slate-500">Select a meeting to view its generated documents.</p>
+            {meetingsPanel}
+          </>
+        )}
       </div>
     );
   }
@@ -169,63 +261,7 @@ export default function OutputReview({ meetingId }: { meetingId: string }) {
       </button>
       <PageHeader title="Output Review Workspace" subtitle="Review and refine AI-generated meeting outputs." />
 
-      <div className="card mb-5 p-4">
-        <div className="flex flex-wrap items-end gap-3">
-          <div className="min-w-[220px] flex-1">
-            <label className="label">Search Meetings</label>
-            <div className="relative">
-              <Search size={16} className="pointer-events-none absolute left-3 top-2.5 text-slate-400" />
-              <input
-                className="input pl-9"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search by title or participant…"
-              />
-            </div>
-          </div>
-          <div>
-            <label className="label">Date</label>
-            <select className="input min-w-[140px]" value={dateFilter} onChange={(e) => setDateFilter(e.target.value)}>
-              <option value="all">All Dates</option>
-              <option value="week">This Week</option>
-              <option value="month">This Month</option>
-            </select>
-          </div>
-          <div>
-            <label className="label">Person</label>
-            <select className="input min-w-[140px]" value={personFilter} onChange={(e) => setPersonFilter(e.target.value)}>
-              <option value="">All People</option>
-              {allPeople.map((p) => (
-                <option key={p} value={p}>
-                  {p}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-        {(search.trim() || dateFilter !== 'all' || personFilter) && (
-          <div className="mt-3 border-t border-slate-100 pt-3">
-            {filteredMeetings.length === 0 ? (
-              <p className="text-sm text-slate-500">No meetings found</p>
-            ) : (
-              <ul className="space-y-1">
-                {filteredMeetings.slice(0, 5).map((m) => (
-                  <li key={m.id}>
-                    <button
-                      className={`w-full rounded-lg px-3 py-2 text-left text-sm transition hover:bg-slate-100 ${
-                        m.id === meeting.id ? 'bg-brand-50 font-medium text-brand-700' : 'text-slate-700'
-                      }`}
-                      onClick={() => navigate(`/outputs/review/${m.id}`)}
-                    >
-                      {m.title} <span className="text-xs text-slate-400">· {m.project_client} · {formatDate(m.meeting_date)}</span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        )}
-      </div>
+      {meetingsPanel}
 
       <div className="card mb-5 p-5">
         <div className="flex flex-wrap items-start justify-between gap-4">

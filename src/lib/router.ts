@@ -7,7 +7,8 @@ export type Route =
   | { name: 'outputs-review'; meetingId: string }
   | { name: 'repository'; params: URLSearchParams };
 
-const BASE = import.meta.env.BASE_URL ?? '/';
+const viteEnv = (import.meta as unknown as { env?: Record<string, string> }).env ?? {};
+const BASE = viteEnv.BASE_URL ?? '/';
 
 function stripBase(pathname: string): string {
   if (BASE && BASE !== '/' && pathname.startsWith(BASE)) {
@@ -24,6 +25,8 @@ export function parsePath(): Route {
   if (path === '/meetings/new') return { name: 'meetings-new' };
   if (path === '/meetings') return { name: 'meetings', week: params.get('week') };
   if (path === '/quick-notes') return { name: 'quick-notes' };
+  if (path === '/outputs/select' || path === '/outputs/select/') return { name: 'outputs-select', meetingId: '' };
+  if (path === '/outputs/review' || path === '/outputs/review/') return { name: 'outputs-review', meetingId: '' };
   const selectMatch = path.match(/^\/outputs\/select\/([^/]+)$/);
   if (selectMatch) return { name: 'outputs-select', meetingId: selectMatch[1] };
   const reviewMatch = path.match(/^\/outputs\/review\/([^/]+)$/);

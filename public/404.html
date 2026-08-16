@@ -7,9 +7,11 @@
       (function () {
         var l = window.location;
         var origin = l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '');
+        var base = l.pathname.split('/')[1] ? '/' + l.pathname.split('/')[1] + '/' : '/';
         l.replace(
           origin +
-            '/?p=' +
+            base +
+            '?p=' +
             encodeURIComponent(l.pathname + l.search) +
             (l.hash ? '&h=' + encodeURIComponent(l.hash) : '')
         );

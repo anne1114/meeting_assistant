@@ -59,8 +59,8 @@ export default function NewMeeting() {
         report_saved: false,
         created_at: nowISO(),
       };
-      const { data, error: saveError } = await supabase.from<Meeting>('meetings').insert(meeting);
-      if (saveError || !data) {
+      const { error: saveError } = await supabase.from<Meeting>('meetings').insert(meeting);
+      if (saveError) {
         setError('Failed to save meeting. Please try again.');
         return null;
       }

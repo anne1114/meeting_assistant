@@ -65,6 +65,25 @@ async function main(): Promise<void> {
   const gone = await client.from('meetings').select('id').eq('id', probeId).maybeSingle();
   check('cleanup confirmed', !gone.error && gone.data === null, gone.error?.message ?? '');
 
+  const appPattern = await client.from('meetings').insert({
+    title: 'VERIFY-PROBE-2',
+    project_client: 'probe',
+    meeting_date: new Date().toISOString().slice(0, 10),
+    participants: [],
+    transcript: '',
+    notes: '',
+    selected_outputs: [],
+    outputs_generated: false,
+    status: 'draft',
+    report_saved: false,
+  });
+  check(
+    'app insert pattern (no .select, no error)',
+    !appPattern.error,
+    appPattern.error?.message ?? `unexpected data: ${JSON.stringify(appPattern.data)}`
+  );
+  await client.from('meetings').delete().eq('title', 'VERIFY-PROBE-2');
+
   console.log(failures === 0 ? '\nAll remote checks PASS' : `\n${failures} failure(s)`);
   process.exit(failures === 0 ? 0 : 1);
 }
