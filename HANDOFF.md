@@ -7,9 +7,9 @@ Rules: this file is updated at the END of every task. An incoming agent reads **
 ## Latest State
 
 - **Current task:** Fixed live-site bugs (nav, saving, documents, review list) - code pushed, redeploy in progress
-- **Status:** Done. Edge Function verified working (HTTP 200 test call). Supabase DB emptied of all test/demo rows.
+- **Status:** Done. Fixes deployed (workflow 15:41Z SUCCESS) and verified live: bundle contains empty-state CTA, AI-refine, Summarize with AI; deep link `/meeting_assistant/repository` serves the base-aware 404 fallback. Edge Function verified working (HTTP 200 test call). Supabase DB emptied of all test/demo rows.
 - **Incoming agent should:**
-  1. Verify the redeployed live site: sidebar Review Output opens the review workspace (not Dashboard), save meeting works, generate outputs works, AI buttons work (function is deployed), deep-link refresh works.
+  1. Ask the user to retest on the live site (sidebar Review Output, save meeting, generate outputs, AI buttons, deep-link refresh).
   2. `npm run build` + `npx tsx scripts/smoke.ts` + `npx tsx scripts/verify-remote.ts` must all pass after any change.
   3. Read `AGENTS.md` for conventions and `Product Specification Document - Meeting Assistant.docx` (sections 8-9, 11) before touching business logic.
 
