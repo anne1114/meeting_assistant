@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { ArrowLeft, Plus, Trash2, UploadCloud } from 'lucide-react';
+import { ArrowLeft, Plus, Sparkles, Trash2, UploadCloud } from 'lucide-react';
 import { PageHeader } from '../components/ui';
-import { supabase } from '../lib/client';
+import { supabase, useRemoteDb } from '../lib/client';
+import { aiSummarize } from '../lib/gemini';
 import { navigate } from '../lib/router';
 import { uid, nowISO, todayISO } from '../lib/utils';
 import type { Meeting } from '../lib/types';
@@ -15,6 +16,7 @@ export default function NewMeeting() {
   const [notes, setNotes] = useState('');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+  const [summarizing, setSummarizing] = useState(false);
 
   const validParticipants = participants.map((p) => p.trim()).filter(Boolean);
   const canContinue = Boolean(title.trim() && projectClient.trim() && meetingDate && validParticipants.length > 0);
@@ -68,6 +70,23 @@ export default function NewMeeting() {
       return null;
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleAiSummarize = async () => {
+    if (!transcript.trim()) {
+      setError('Paste a transcript first, then summarize.');
+      return;
+    }
+    setError('');
+    setSummarizing(true);
+    try {
+      const summary = await aiSummarize(transcript, 'summary');
+      setNotes((prev) => (prev.trim() ? `${prev.trim()}\n\n${summary}` : summary));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'AI summarize failed.');
+    } finally {
+      setSummarizing(false);
     }
   };
 
@@ -150,6 +169,16 @@ export default function NewMeeting() {
               onChange={(e) => setTranscript(e.target.value)}
               placeholder="Paste the meeting transcript here…"
             />
+            {useRemoteDb && (
+              <button
+                className="btn-secondary mt-2"
+                onClick={handleAiSummarize}
+                disabled={summarizing || !transcript.trim()}
+              >
+                <Sparkles size={14} />
+                {summarizing ? 'Summarizing…' : 'Summarize with AI'}
+              </button>
+            )}
           </div>
           <div>
             <label className="label">Meeting Notes</label>

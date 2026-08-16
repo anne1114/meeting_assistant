@@ -125,6 +125,14 @@ export default function OutputReview({ meetingId }: { meetingId: string }) {
     void load();
   };
 
+  const handleMinutesRefined = async (updated: MeetingMinutes) => {
+    await supabase
+      .from<MeetingMinutes>('meeting_minutes')
+      .update({ discussion_summary: updated.discussion_summary, key_decisions: updated.key_decisions })
+      .eq('id', updated.id);
+    void load();
+  };
+
   if (!data) {
     return (
       <div className="flex h-64 items-center justify-center">
@@ -302,7 +310,9 @@ export default function OutputReview({ meetingId }: { meetingId: string }) {
         })}
       </div>
 
-      {tab === 'minutes' && <MinutesTab minutes={data.minutes} />}
+      {tab === 'minutes' && (
+        <MinutesTab minutes={data.minutes} transcript={meeting.transcript} onRefined={handleMinutesRefined} />
+      )}
       {tab === 'actions' && <ActionItemsTab meeting={meeting} actions={data.actions} onChanged={load} />}
       {tab === 'raid' && <RaidTab meeting={meeting} raid={data.raid} onChanged={load} />}
       {tab === 'status' && <StatusReportTab report={data.status} />}

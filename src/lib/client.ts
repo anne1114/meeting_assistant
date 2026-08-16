@@ -1,6 +1,13 @@
 import { db, save, type DB } from './db';
+import { createClient } from '@supabase/supabase-js';
 
 export type TableName = keyof DB;
+
+const viteEnv = (import.meta as unknown as { env?: Record<string, string> }).env ?? {};
+export const SUPABASE_URL = viteEnv.VITE_SUPABASE_URL;
+export const SUPABASE_ANON_KEY = viteEnv.VITE_SUPABASE_ANON_KEY;
+
+export const useRemoteDb = Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
 
 export interface QueryError {
   message: string;
@@ -258,10 +265,16 @@ function makeId(): string {
   });
 }
 
-export const supabase = {
+const localSupabase = {
   from<T>(table: TableName): QueryBuilder<T> {
     return new QueryBuilder<T>(table);
   },
 };
+
+export const supabase: typeof localSupabase = useRemoteDb
+  ? (createClient(SUPABASE_URL!, SUPABASE_ANON_KEY!, {
+      auth: { persistSession: false },
+    }) as unknown as typeof localSupabase)
+  : localSupabase;
 
 export { save as persistDB };

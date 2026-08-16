@@ -7,23 +7,34 @@ export type Route =
   | { name: 'outputs-review'; meetingId: string }
   | { name: 'repository'; params: URLSearchParams };
 
+const BASE = import.meta.env.BASE_URL ?? '/';
+
+function stripBase(pathname: string): string {
+  if (BASE && BASE !== '/' && pathname.startsWith(BASE)) {
+    return pathname.slice(BASE.length - 1) || '/';
+  }
+  return pathname;
+}
+
 export function parsePath(): Route {
   const { pathname, search } = window.location;
+  const path = stripBase(pathname);
   const params = new URLSearchParams(search);
-  if (pathname === '/' || pathname === '/dashboard') return { name: 'dashboard' };
-  if (pathname === '/meetings/new') return { name: 'meetings-new' };
-  if (pathname === '/meetings') return { name: 'meetings', week: params.get('week') };
-  if (pathname === '/quick-notes') return { name: 'quick-notes' };
-  const selectMatch = pathname.match(/^\/outputs\/select\/([^/]+)$/);
+  if (path === '/' || path === '/dashboard') return { name: 'dashboard' };
+  if (path === '/meetings/new') return { name: 'meetings-new' };
+  if (path === '/meetings') return { name: 'meetings', week: params.get('week') };
+  if (path === '/quick-notes') return { name: 'quick-notes' };
+  const selectMatch = path.match(/^\/outputs\/select\/([^/]+)$/);
   if (selectMatch) return { name: 'outputs-select', meetingId: selectMatch[1] };
-  const reviewMatch = pathname.match(/^\/outputs\/review\/([^/]+)$/);
+  const reviewMatch = path.match(/^\/outputs\/review\/([^/]+)$/);
   if (reviewMatch) return { name: 'outputs-review', meetingId: reviewMatch[1] };
-  if (pathname === '/repository') return { name: 'repository', params };
+  if (path === '/repository') return { name: 'repository', params };
   return { name: 'dashboard' };
 }
 
 export function navigate(path: string): void {
-  window.history.pushState({}, '', path);
+  const full = BASE && BASE !== '/' ? `${BASE.replace(/\/$/, '')}${path}` : path;
+  window.history.pushState({}, '', full);
   window.dispatchEvent(new PopStateEvent('popstate'));
 }
 

@@ -1,6 +1,8 @@
 import { useState } from 'react';
-import { Copy, Check, FileText } from 'lucide-react';
+import { Copy, Check, FileText, Sparkles } from 'lucide-react';
 import { EmptyState } from '../ui';
+import { useRemoteDb } from '../../lib/client';
+import { aiSummarize } from '../../lib/gemini';
 import type { MeetingMinutes } from '../../lib/types';
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -22,8 +24,18 @@ function BulletList({ items }: { items: string[] }) {
   );
 }
 
-export default function MinutesTab({ minutes }: { minutes: MeetingMinutes | null }) {
+export default function MinutesTab({
+  minutes,
+  transcript,
+  onRefined,
+}: {
+  minutes: MeetingMinutes | null;
+  transcript?: string;
+  onRefined?: (minutes: MeetingMinutes) => void;
+}) {
   const [copied, setCopied] = useState(false);
+  const [refining, setRefining] = useState(false);
+  const [refineError, setRefineError] = useState('');
 
   if (!minutes) {
     return (
@@ -34,6 +46,29 @@ export default function MinutesTab({ minutes }: { minutes: MeetingMinutes | null
       />
     );
   }
+
+  const canRefine = Boolean(onRefined && useRemoteDb && transcript?.trim());
+
+  const handleRefine = async () => {
+    if (!transcript) return;
+    setRefineError('');
+    setRefining(true);
+    try {
+      const [summary, decisions] = await Promise.all([
+        aiSummarize(transcript, 'summary'),
+        aiSummarize(transcript, 'decisions'),
+      ]);
+      const keyDecisions = decisions
+        .split('\n')
+        .map((l) => l.trim().replace(/^[-*]\s*/, ''))
+        .filter(Boolean);
+      onRefined?.({ ...minutes, discussion_summary: summary, key_decisions: keyDecisions });
+    } catch (e) {
+      setRefineError(e instanceof Error ? e.message : 'AI refine failed.');
+    } finally {
+      setRefining(false);
+    }
+  };
 
   const plainText = [
     `Meeting Objective\n${minutes.objective}`,
@@ -53,11 +88,22 @@ export default function MinutesTab({ minutes }: { minutes: MeetingMinutes | null
     <div className="card p-5">
       <div className="mb-4 flex items-center justify-between">
         <p className="text-sm font-semibold text-slate-500">Meeting Minutes</p>
-        <button className="btn-secondary" onClick={handleCopy}>
-          {copied ? <Check size={14} /> : <Copy size={14} />}
-          {copied ? 'Copied' : 'Copy'}
-        </button>
+        <div className="flex items-center gap-2">
+          {canRefine && (
+            <button className="btn-secondary" onClick={handleRefine} disabled={refining}>
+              <Sparkles size={14} />
+              {refining ? 'Refining…' : 'AI-refine'}
+            </button>
+          )}
+          <button className="btn-secondary" onClick={handleCopy}>
+            {copied ? <Check size={14} /> : <Copy size={14} />}
+            {copied ? 'Copied' : 'Copy'}
+          </button>
+        </div>
       </div>
+      {refineError && (
+        <div className="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{refineError}</div>
+      )}
       <div className="space-y-4">
         <Section title="Meeting Objective">
           <p>{minutes.objective}</p>

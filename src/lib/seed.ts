@@ -1,8 +1,10 @@
-import { db, save, STORAGE_KEY } from './db';
+import { save, STORAGE_KEY } from './db';
 import { uid, nowISO, todayISO, addDays } from './utils';
-import { supabase } from './client';
+import { supabase, asArray, useRemoteDb } from './client';
 import { generateAndPersist } from './generator';
 import type { Meeting, FollowUp, QuickNote } from './types';
+
+const viteEnv = (import.meta as unknown as { env?: Record<string, string> }).env ?? {};
 
 const sprintTranscript = [
   'The objective of this meeting is to kick off Sprint 25 for the Atlas Migration project and align on the migration milestones.',
@@ -61,7 +63,13 @@ function buildMeeting(data: Partial<Meeting> & Pick<Meeting, 'title' | 'project_
 }
 
 export async function seedIfNeeded(): Promise<void> {
-  if (localStorage.getItem(STORAGE_KEY)) return;
+  if (viteEnv.VITE_SEED_DISABLED === 'true') return;
+  if (useRemoteDb) {
+    const existing = await supabase.from<Meeting>('meetings').select('id').limit(1);
+    if (existing.error || asArray(existing.data).length > 0) return;
+  } else if (localStorage.getItem(STORAGE_KEY)) {
+    return;
+  }
 
   const today = todayISO();
 
@@ -221,12 +229,16 @@ export async function seedIfNeeded(): Promise<void> {
   ];
   await supabase.from<QuickNote>('quick_notes').insert(quickNotes);
 
-  save();
+  if (!useRemoteDb) save();
 
+  const count = async (table: 'meetings' | 'follow_ups' | 'quick_notes'): Promise<number> => {
+    const res = await supabase.from<Meeting | FollowUp | QuickNote>(table).select('id');
+    return asArray(res.data).length;
+  };
   const seeded = {
-    meetings: db.meetings.length,
-    followUps: db.follow_ups.length,
-    quickNotes: db.quick_notes.length,
+    meetings: await count('meetings'),
+    followUps: await count('follow_ups'),
+    quickNotes: await count('quick_notes'),
   };
   console.info('[meeting-assistant] seeded demo data:', seeded);
 }
