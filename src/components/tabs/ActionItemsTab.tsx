@@ -109,8 +109,8 @@ export default function ActionItemsTab({ meeting, actions, onChanged }: ActionIt
 
   return (
     <div className="card overflow-hidden">
-      <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
-        <p className="text-sm font-semibold text-slate-500">
+      <div className="flex items-center justify-between border-b border-stone-100 bg-cream-50/40 px-6 py-4">
+        <p className="section-title">
           Action Items ({actions.length})
         </p>
         <button className="btn-primary" onClick={openAdd}>
@@ -131,7 +131,7 @@ export default function ActionItemsTab({ meeting, actions, onChanged }: ActionIt
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-slate-100">
+              <tr className="border-b border-stone-100">
                 <th className="th">Action Item</th>
                 <th className="th">Owner</th>
                 <th className="th">Due Date</th>
@@ -143,7 +143,7 @@ export default function ActionItemsTab({ meeting, actions, onChanged }: ActionIt
             </thead>
             <tbody>
               {actions.map((item) => (
-                <tr key={item.id} className="border-b border-slate-50 align-top hover:bg-slate-50">
+                <tr key={item.id} className="border-b border-stone-50 align-top hover:bg-cream-50">
                   <td className="td max-w-[280px]">
                     <p className="text-sm">{item.title}</p>
                   </td>
@@ -156,7 +156,7 @@ export default function ActionItemsTab({ meeting, actions, onChanged }: ActionIt
                     <StatusBadge status={item.status} />
                   </td>
                   <td className="td max-w-[180px]">
-                    <p className="truncate text-xs text-slate-500">{item.follow_up_note || '—'}</p>
+                    <p className="truncate text-xs text-stone-500">{item.follow_up_note || '—'}</p>
                   </td>
                   <td className="td">
                     <div className="flex items-center justify-end gap-0.5">
@@ -166,7 +166,7 @@ export default function ActionItemsTab({ meeting, actions, onChanged }: ActionIt
                       <button className="btn-icon" onClick={() => openEdit(item)} aria-label="Edit action item" title="Edit">
                         <Pencil size={16} />
                       </button>
-                      <button className="btn-icon text-red-500 hover:bg-red-50" onClick={() => remove(item)} aria-label="Delete action item" title="Delete">
+                      <button className="btn-icon-danger" onClick={() => remove(item)} aria-label="Delete action item" title="Delete">
                         <Trash2 size={16} />
                       </button>
                     </div>

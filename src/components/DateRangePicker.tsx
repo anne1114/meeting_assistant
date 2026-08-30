@@ -59,8 +59,8 @@ export default function DateRangePicker({ start, end, onChange }: DateRangePicke
     <div ref={ref} className="relative">
       <div className="flex gap-1">
         <button type="button" className="input flex items-center gap-2 text-left" onClick={() => setOpen((o) => !o)}>
-          <CalendarIcon size={16} className="text-slate-400" />
-          <span className={start ? '' : 'text-slate-400'}>{label}</span>
+          <CalendarIcon size={16} className="text-stone-400" />
+          <span className={start ? '' : 'text-stone-400'}>{label}</span>
         </button>
         {(start || end) && (
           <button type="button" className="btn-icon" onClick={clear} aria-label="Clear date range">
@@ -69,12 +69,12 @@ export default function DateRangePicker({ start, end, onChange }: DateRangePicke
         )}
       </div>
       {open && (
-        <div className="animate-scale-in absolute left-0 top-full z-40 mt-2 w-72 rounded-xl border border-slate-200 bg-white p-4 shadow-lg">
+        <div className="animate-scale-in absolute left-0 top-full z-40 mt-2 w-72 rounded-2xl border border-stone-200 bg-white p-4 shadow-lift">
           <div className="mb-3 flex items-center justify-between">
             <button type="button" className="btn-icon" onClick={() => navMonth(-1)} aria-label="Previous month">
               <ChevronLeft size={18} />
             </button>
-            <p className="text-sm font-semibold text-slate-800">
+            <p className="text-sm font-semibold text-ink">
               {month.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
             </p>
             <button type="button" className="btn-icon" onClick={() => navMonth(1)} aria-label="Next month">
@@ -83,7 +83,7 @@ export default function DateRangePicker({ start, end, onChange }: DateRangePicke
           </div>
           <div className="grid grid-cols-7 gap-1 text-center">
             {WEEKDAYS.map((w) => (
-              <span key={w} className="text-xs font-semibold text-slate-400">
+              <span key={w} className="text-xs font-bold text-stone-400">
                 {w}
               </span>
             ))}
@@ -97,8 +97,8 @@ export default function DateRangePicker({ start, end, onChange }: DateRangePicke
                     start && end && iso >= start && iso <= end
                       ? 'bg-brand-100 text-brand-700'
                       : iso === pendingStart
-                        ? 'bg-brand-600 text-white'
-                        : 'text-slate-700 hover:bg-slate-100'
+                        ? 'bg-brand-600 text-white shadow-sm'
+                        : 'text-stone-700 hover:bg-cream-100'
                   }`}
                 >
                   {Number(iso.slice(8))}
@@ -108,7 +108,7 @@ export default function DateRangePicker({ start, end, onChange }: DateRangePicke
               )
             )}
           </div>
-          <p className="mt-3 text-xs text-slate-400">Select a start date, then an end date.</p>
+          <p className="mt-3 text-xs font-medium text-stone-400">Select a start date, then an end date.</p>
         </div>
       )}
     </div>

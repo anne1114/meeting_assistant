@@ -126,7 +126,6 @@ export default function QuickNotes() {
                 <option value="in_progress">In Progress</option>
                 <option value="pending">Pending</option>
                 <option value="completed">Completed</option>
-                <option value="overdue">Overdue</option>
               </select>
             </div>
             <div>
@@ -162,31 +161,31 @@ export default function QuickNotes() {
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {notes.map((note) => (
-            <div key={note.id} className="card flex flex-col p-5">
+            <div key={note.id} className="card flex flex-col p-5 transition hover:shadow-lift">
               <div className="flex items-start justify-between gap-2">
-                <p className="text-sm font-semibold text-slate-900">{note.title}</p>
-                <button className="btn-icon shrink-0 text-red-500 hover:bg-red-50" onClick={() => deleteNote(note)} aria-label="Delete note">
+                <p className="text-sm font-semibold text-ink">{note.title}</p>
+                <button className="btn-icon-danger shrink-0" onClick={() => deleteNote(note)} aria-label="Delete note">
                   <Trash2 size={16} />
                 </button>
               </div>
               {note.description && (
-                <p className="mt-2 line-clamp-3 text-sm text-slate-600">{note.description}</p>
+                <p className="mt-2 line-clamp-3 text-sm text-stone-600">{note.description}</p>
               )}
               <div className="mt-3 flex flex-wrap items-center gap-1.5">
                 <StatusBadge status={note.status} />
                 <CriticalityBadge criticality={note.criticality} />
               </div>
-              <div className="mt-3 space-y-1 text-xs text-slate-500">
+              <div className="mt-3 space-y-1 text-xs text-stone-500">
                 <p className="flex items-center gap-1.5">
-                  <User size={13} className="text-slate-400" />
+                  <User size={13} className="text-stone-400" />
                   {note.assigned_to || 'Unassigned'}
                 </p>
                 <p className="flex items-center gap-1.5">
-                  <Calendar size={13} className="text-slate-400" />
+                  <Calendar size={13} className="text-stone-400" />
                   {formatDate(note.due_date)}
                 </p>
               </div>
-              <div className="mt-4 border-t border-slate-100 pt-3">
+              <div className="mt-4 border-t border-stone-100 pt-3">
                 <button className="btn-secondary w-full" onClick={() => setRepoNote(note)}>
                   <ArrowUpRight size={16} />
                   Add to Repository

@@ -210,7 +210,7 @@ export default function Repository({ params }: { params: URLSearchParams }) {
       />
 
       {hasUrlFilters && (
-        <div className="mb-4 flex flex-wrap items-center gap-3">
+        <div className="section-gap flex flex-wrap items-center gap-3">
           <button className="btn-secondary" onClick={() => navigate('/dashboard')}>
             <ArrowLeft size={16} />
             Back to Dashboard
@@ -223,9 +223,9 @@ export default function Repository({ params }: { params: URLSearchParams }) {
         </div>
       )}
 
-      <div className="mb-4 flex flex-wrap items-center gap-2">
+      <div className="section-gap flex flex-wrap items-center gap-3">
         <div className="relative min-w-[220px] flex-1">
-          <Search size={16} className="pointer-events-none absolute left-3 top-2.5 text-slate-400" />
+          <Search size={16} className="pointer-events-none absolute left-3 top-2.5 text-stone-400" />
           <input
             className="input pl-9"
             value={search}
@@ -244,7 +244,7 @@ export default function Repository({ params }: { params: URLSearchParams }) {
       </div>
 
       {presets.length > 0 && (
-        <div className="mb-4 flex flex-wrap items-center gap-2">
+        <div className="section-gap flex flex-wrap items-center gap-2">
           {presets.map((p) => (
             <button key={p.id} className="badge border border-brand-200 bg-brand-50 px-3 py-1 text-brand-700 hover:bg-brand-100" onClick={() => applyPreset(p)}>
               <Bookmark size={12} />
@@ -255,8 +255,11 @@ export default function Repository({ params }: { params: URLSearchParams }) {
       )}
 
       {filtersOpen && (
-        <div className="card mb-4 p-5">
-          <p className="mb-3 text-sm font-semibold text-slate-700">Advanced Filters</p>
+        <div className="card section-gap p-6">
+          <p className="mb-3 inline-flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.16em] text-brand-600">
+            <span className="h-px w-5 bg-brand-600/50" />
+            Advanced Filters
+          </p>
           <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
             <div>
               <label className="label">Type</label>
@@ -319,7 +322,7 @@ export default function Repository({ params }: { params: URLSearchParams }) {
               />
             </div>
           </div>
-          <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-4">
+          <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-stone-100 pt-4">
             <button className="btn-secondary" onClick={clearAllFilters}>
               Reset All Filters
             </button>
@@ -366,14 +369,14 @@ export default function Repository({ params }: { params: URLSearchParams }) {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-slate-100">
+                <tr className="border-b border-stone-100">
                   <th className="th w-10">Done</th>
                   <th className="th">Item</th>
                   <th className="th">Type</th>
                   <th className="th">Source Meeting</th>
                   <th className="th">
                     <button
-                      className="flex items-center gap-1 font-semibold uppercase tracking-wide text-slate-500 hover:text-slate-800"
+                      className="flex items-center gap-1 font-semibold uppercase tracking-wide text-stone-500 hover:text-stone-800"
                       onClick={() => setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))}
                     >
                       Due Date {sortDir === 'asc' ? '↑' : '↓'}
@@ -388,13 +391,13 @@ export default function Repository({ params }: { params: URLSearchParams }) {
                   return (
                     <tr
                       key={item.id}
-                      className={`border-b border-slate-50 transition hover:bg-slate-50 ${completed ? 'opacity-50' : ''}`}
+                      className={`border-b border-stone-50 transition hover:bg-cream-50 ${completed ? 'opacity-50' : ''}`}
                     >
                       <td className="td">
                         <button
                           onClick={() => toggleComplete(item)}
                           className={`flex h-5 w-5 items-center justify-center rounded border transition ${
-                            completed ? 'border-brand-600 bg-brand-600 text-white' : 'border-slate-300 hover:border-brand-400'
+                            completed ? 'border-brand-600 bg-brand-600 text-white' : 'border-stone-300 hover:border-brand-400'
                           }`}
                           aria-label={completed ? 'Mark incomplete' : 'Mark complete'}
                         >
@@ -406,7 +409,7 @@ export default function Repository({ params }: { params: URLSearchParams }) {
                         </button>
                       </td>
                       <td className="td max-w-[280px]">
-                        <p className={`truncate font-medium text-slate-900 ${completed ? 'line-through' : ''}`} title={item.item_title}>
+                        <p className={`truncate font-medium text-ink ${completed ? 'line-through' : ''}`} title={item.item_title}>
                           {truncate(item.item_title, 40)}
                         </p>
                       </td>
@@ -417,14 +420,14 @@ export default function Repository({ params }: { params: URLSearchParams }) {
                               ? 'bg-emerald-50 text-emerald-700'
                               : item.type === 'RAID'
                                 ? 'bg-red-50 text-red-700'
-                                : 'bg-blue-50 text-blue-700'
+                                : 'bg-sky-50 text-sky-700'
                           }
                         >
                           {item.type}
                         </Badge>
                       </td>
                       <td className="td max-w-[200px]">
-                        <p className="truncate text-xs text-slate-500" title={meetingTitle(item.meeting_id) ?? ''}>
+                        <p className="truncate text-xs text-stone-500" title={meetingTitle(item.meeting_id) ?? ''}>
                           {truncate(meetingTitle(item.meeting_id) ?? '—', 25)}
                         </p>
                       </td>
@@ -439,7 +442,7 @@ export default function Repository({ params }: { params: URLSearchParams }) {
                           <button className="btn-icon" onClick={() => setEditItem(item)} aria-label="Edit item" title="Edit">
                             <Pencil size={16} />
                           </button>
-                          <button className="btn-icon text-red-500 hover:bg-red-50" onClick={() => setDeleteItem(item)} aria-label="Delete item" title="Delete">
+                          <button className="btn-icon-danger" onClick={() => setDeleteItem(item)} aria-label="Delete item" title="Delete">
                             <Trash2 size={16} />
                           </button>
                         </div>
@@ -453,8 +456,8 @@ export default function Repository({ params }: { params: URLSearchParams }) {
         )}
 
         {filtered.length > 0 && (
-          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 px-5 py-3">
-            <p className="text-sm text-slate-500">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-stone-100 px-6 py-3.5">
+            <p className="text-sm text-stone-500">
               Showing {(page - 1) * ITEMS_PER_PAGE + 1}-{Math.min(page * ITEMS_PER_PAGE, filtered.length)} of {filtered.length} items
             </p>
             <div className="flex items-center gap-1">
@@ -466,7 +469,7 @@ export default function Repository({ params }: { params: URLSearchParams }) {
                   key={n}
                   onClick={() => setPage(n)}
                   className={`h-8 w-8 rounded-lg text-sm font-medium transition ${
-                    n === page ? 'bg-brand-600 text-white' : 'text-slate-600 hover:bg-slate-100'
+                    n === page ? 'bg-brand-600 text-white' : 'text-stone-600 hover:bg-stone-100'
                   }`}
                 >
                   {n}

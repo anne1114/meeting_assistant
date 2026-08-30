@@ -7,9 +7,12 @@ import type { MeetingMinutes } from '../../lib/types';
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="border-b border-slate-100 pb-4 last:border-b-0 last:pb-0">
-      <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
-      <div className="mt-2 text-sm text-slate-600">{children}</div>
+    <div className="border-b border-stone-100 pb-4 last:border-b-0 last:pb-0">
+      <h3 className="flex items-center gap-2.5 font-display text-[17px] font-medium text-ink">
+        <span className="h-px w-5 bg-brand-600" />
+        {title}
+      </h3>
+      <div className="mt-2.5 pl-7 text-sm leading-relaxed text-stone-600">{children}</div>
     </div>
   );
 }
@@ -85,9 +88,9 @@ export default function MinutesTab({
   };
 
   return (
-    <div className="card p-5">
-      <div className="mb-4 flex items-center justify-between">
-        <p className="text-sm font-semibold text-slate-500">Meeting Minutes</p>
+    <div className="card overflow-hidden">
+      <div className="flex items-center justify-between border-b border-stone-100 bg-cream-50/40 px-6 py-4">
+        <p className="section-title">Meeting Minutes</p>
         <div className="flex items-center gap-2">
           {canRefine && (
             <button className="btn-secondary" onClick={handleRefine} disabled={refining}>
@@ -102,9 +105,9 @@ export default function MinutesTab({
         </div>
       </div>
       {refineError && (
-        <div className="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{refineError}</div>
+        <div className="mb-4 border-b border-red-100 bg-red-50/60 px-6 py-3 text-sm text-red-700">{refineError}</div>
       )}
-      <div className="space-y-4">
+      <div className="space-y-5 p-6">
         <Section title="Meeting Objective">
           <p>{minutes.objective}</p>
         </Section>

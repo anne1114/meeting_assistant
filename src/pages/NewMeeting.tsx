@@ -61,12 +61,12 @@ export default function NewMeeting() {
       };
       const { error: saveError } = await supabase.from<Meeting>('meetings').insert(meeting);
       if (saveError) {
-        setError('Failed to save meeting. Please try again.');
+        setError(`Failed to save meeting. ${saveError.message}`);
         return null;
       }
       return meeting;
-    } catch {
-      setError('Failed to save meeting. Please try again.');
+    } catch (e) {
+      setError(`Failed to save meeting. ${e instanceof Error ? e.message : String(e)}`);
       return null;
     } finally {
       setSaving(false);
@@ -112,13 +112,16 @@ export default function NewMeeting() {
       />
 
       {error && (
-        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+        <div className="section-gap rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
           {error}
         </div>
       )}
 
       <div className="card mb-6 p-6">
-        <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-500">Basic Info</h2>
+        <p className="mb-5 inline-flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.16em] text-brand-600">
+          <span className="h-px w-6 bg-brand-600/50" />
+          Basic Info
+        </p>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <label className="label">Meeting Title</label>
@@ -136,7 +139,10 @@ export default function NewMeeting() {
       </div>
 
       <div className="card mb-6 p-6">
-        <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-500">Participants</h2>
+        <p className="mb-5 inline-flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.16em] text-brand-600">
+          <span className="h-px w-6 bg-brand-600/50" />
+          Participants
+        </p>
         <div className="space-y-2">
           {participants.map((p, idx) => (
             <div key={idx} className="flex items-center gap-2">
@@ -146,7 +152,7 @@ export default function NewMeeting() {
                 onChange={(e) => updateParticipant(idx, e.target.value)}
                 placeholder={`Participant ${idx + 1} name`}
               />
-              <button className="btn-icon text-red-500 hover:bg-red-50" onClick={() => removeParticipant(idx)} aria-label="Remove participant">
+              <button className="btn-icon-danger" onClick={() => removeParticipant(idx)} aria-label="Remove participant">
                 <Trash2 size={16} />
               </button>
             </div>
@@ -159,7 +165,10 @@ export default function NewMeeting() {
       </div>
 
       <div className="card mb-6 p-6">
-        <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-500">Transcript & Notes</h2>
+        <p className="mb-5 inline-flex items-center gap-2 text-[12px] font-semibold uppercase tracking-[0.16em] text-brand-600">
+          <span className="h-px w-6 bg-brand-600/50" />
+          Transcript & Notes
+        </p>
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           <div>
             <label className="label">Meeting Transcript</label>
@@ -190,11 +199,11 @@ export default function NewMeeting() {
             />
           </div>
         </div>
-        <div className="mt-4 flex items-center justify-center rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 px-4 py-8 text-center">
+        <div className="mt-4 flex items-center justify-center rounded-xl border border-dashed border-stone-300 bg-cream-50/60 px-4 py-8 text-center">
           <div>
-            <UploadCloud size={24} className="mx-auto text-slate-400" />
-            <p className="mt-2 text-sm font-medium text-slate-500">File upload coming soon</p>
-            <p className="text-xs text-slate-400">This area is a placeholder — paste text above instead.</p>
+            <UploadCloud size={22} className="mx-auto text-taupe-light" />
+            <p className="mt-2 text-sm font-medium text-stone-600">File upload coming soon</p>
+            <p className="text-xs text-taupe-light">This area is a placeholder — paste text above instead.</p>
           </div>
         </div>
       </div>

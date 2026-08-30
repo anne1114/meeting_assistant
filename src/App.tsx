@@ -24,8 +24,9 @@ export default function App() {
     return () => window.removeEventListener('popstate', onPop);
   }, []);
 
+  const key = routeKey(route);
+
   const renderPage = () => {
-    const key = routeKey(route);
     switch (route.name) {
       case 'dashboard':
         return <Dashboard key={key} />;
@@ -46,12 +47,14 @@ export default function App() {
 
   return (
     <ToastProvider>
-      <div className="min-h-screen">
+      <div className="min-h-screen bg-cream-100">
         <Sidebar route={route} />
         <MobileNav route={route} open={mobileNavOpen} onClose={() => setMobileNavOpen(false)} />
         <div className="md:pl-64">
           <TopBar route={route} onMenuOpen={() => setMobileNavOpen(true)} />
-          <main className="mx-auto max-w-7xl px-4 py-6 md:px-6">{renderPage()}</main>
+          <main key={key} className="mx-auto max-w-[1280px] animate-fade-in px-5 py-8 md:px-10 md:py-10">
+            {renderPage()}
+          </main>
         </div>
       </div>
     </ToastProvider>

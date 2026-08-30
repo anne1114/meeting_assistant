@@ -34,11 +34,25 @@ function NavLinks({ route, onNavigate }: { route: Route; onNavigate?: () => void
                 navigate(item.path);
                 onNavigate?.();
               }}
-              className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition ${
-                active ? 'bg-brand-50 text-brand-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+              aria-current={active ? 'page' : undefined}
+              className={`group relative flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-[14px] font-medium transition-all duration-200 ${
+                active
+                  ? 'bg-brand-50/70 text-ink'
+                  : 'text-taupe hover:bg-cream-100 hover:text-ink'
               }`}
             >
-              <Icon size={18} className={active ? 'text-brand-600' : 'text-slate-400'} />
+              <span
+                className={`absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-full transition-all ${
+                  active ? 'bg-brand-600' : 'bg-transparent'
+                }`}
+              />
+              <span
+                className={`flex h-8 w-8 items-center justify-center rounded-lg transition-colors ${
+                  active ? 'text-brand-600' : 'text-taupe group-hover:text-ink'
+                }`}
+              >
+                <Icon size={18} strokeWidth={1.6} />
+              </span>
               {item.label}
             </button>
           </li>
@@ -48,36 +62,52 @@ function NavLinks({ route, onNavigate }: { route: Route; onNavigate?: () => void
   );
   return (
     <>
-      <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-slate-400">Workspace</p>
+      <p className="mb-2 mt-1 px-3 text-[10.5px] font-semibold uppercase tracking-[0.18em] text-taupe-light">Workspace</p>
       {render(WORKSPACE_ITEMS)}
-      <p className="mb-2 mt-6 px-3 text-xs font-semibold uppercase tracking-wider text-slate-400">Follow-up</p>
+      <p className="mb-2 mt-8 px-3 text-[10.5px] font-semibold uppercase tracking-[0.18em] text-taupe-light">Follow-up</p>
       {render(FOLLOWUP_ITEMS)}
     </>
   );
 }
 
+function Brand() {
+  return (
+    <div className="flex items-center gap-3 border-b border-stone-200/70 px-5 py-6">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-600 text-white shadow-soft">
+        <span className="font-display text-[17px] font-medium leading-none">M</span>
+      </div>
+      <div className="min-w-0 leading-tight">
+        <p className="font-display text-[16px] font-medium leading-snug text-ink">Meeting Assistant</p>
+        <p className="text-[11px] font-medium tracking-wide text-taupe">AI Project Follow-ups</p>
+      </div>
+    </div>
+  );
+}
+
+function AIFooter() {
+  return (
+    <div className="mx-4 mb-4 rounded-2xl border border-stone-200/60 bg-white/60 p-4 shadow-sm backdrop-blur-[1px]">
+      <div className="flex items-center gap-2">
+        <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-600/10 text-brand-600">
+          <Sparkles size={15} strokeWidth={1.6} />
+        </span>
+        <p className="text-[13px] font-semibold text-ink">AI-Powered</p>
+      </div>
+      <p className="mt-2.5 text-xs leading-relaxed text-taupe">
+        Deterministic engine generates minutes, actions, RAID and status reports.
+      </p>
+    </div>
+  );
+}
+
 export default function Sidebar({ route }: { route: Route }) {
   return (
-    <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-slate-200 bg-white md:flex">
-      <div className="flex items-center gap-3 border-b border-slate-100 px-5 py-4">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-600 text-sm font-bold text-white">M</div>
-        <div className="leading-tight">
-          <p className="text-sm font-bold text-slate-900">Meeting Assistant</p>
-          <p className="text-xs text-slate-500">AI Project Follow-ups</p>
-        </div>
-      </div>
+    <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-stone-200/70 bg-cream-50 md:flex">
+      <Brand />
       <nav className="flex-1 overflow-y-auto px-3 py-4">
         <NavLinks route={route} />
       </nav>
-      <div className="m-4 rounded-xl border border-brand-100 bg-gradient-to-br from-brand-50 to-brand-100 p-4">
-        <div className="flex items-center gap-2">
-          <Sparkles size={16} className="text-brand-600" />
-          <p className="text-sm font-semibold text-brand-800">AI-Powered</p>
-        </div>
-        <p className="mt-1 text-xs text-brand-700/80">
-          Deterministic keyword engine generates minutes, actions, RAID and status reports.
-        </p>
-      </div>
+      <AIFooter />
     </aside>
   );
 }
@@ -86,31 +116,22 @@ export function MobileNav({ route, open, onClose }: { route: Route; open: boolea
   return (
     <div className={`fixed inset-0 z-50 md:hidden ${open ? '' : 'pointer-events-none'}`}>
       <div
-        className={`absolute inset-0 bg-black/40 transition-opacity ${open ? 'opacity-100' : 'opacity-0'}`}
+        className={`absolute inset-0 bg-stone-900/40 backdrop-blur-[2px] transition-opacity ${open ? 'opacity-100' : 'opacity-0'}`}
         onClick={onClose}
       />
       <div
-        className={`absolute inset-y-0 left-0 flex w-72 flex-col bg-white shadow-xl transition-transform ${open ? 'translate-x-0' : '-translate-x-full'}`}
+        className={`absolute inset-y-0 left-0 flex w-72 flex-col bg-cream-50 transition-transform duration-300 ${open ? 'translate-x-0' : '-translate-x-full'}`}
       >
-        <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-600 text-sm font-bold text-white">M</div>
-            <div className="leading-tight">
-              <p className="text-sm font-bold text-slate-900">Meeting Assistant</p>
-              <p className="text-xs text-slate-500">AI Project Follow-ups</p>
-            </div>
-          </div>
-          <button className="btn-ghost p-1" onClick={onClose} aria-label="Close menu">
+        <div className="relative">
+          <Brand />
+          <button className="btn-icon absolute right-3 top-5" onClick={onClose} aria-label="Close menu">
             <X size={20} />
           </button>
         </div>
         <nav className="flex-1 overflow-y-auto px-3 py-4">
           <NavLinks route={route} onNavigate={onClose} />
         </nav>
-        <div className="m-4 rounded-xl border border-brand-100 bg-gradient-to-br from-brand-50 to-brand-100 p-4">
-          <p className="text-sm font-semibold text-brand-800">AI Engine Active</p>
-          <p className="mt-1 text-xs text-brand-700/80">Deterministic output generation, running locally.</p>
-        </div>
+        <AIFooter />
       </div>
     </div>
   );

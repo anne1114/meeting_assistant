@@ -10,7 +10,7 @@ async function main() {
   await seedIfNeeded();
 
   const { supabase, asArray, asSingle } = await import('../src/lib/client');
-  const { effectiveStatus } = await import('../src/lib/utils');
+  const { effectiveStatus, todayISO } = await import('../src/lib/utils');
 
   const meetings = asArray((await supabase.from('meetings').select()).data);
   const followUps = asArray((await supabase.from('follow_ups').select()).data);
@@ -33,7 +33,7 @@ async function main() {
     ['5 manual follow-ups', followUps.filter((f) => f.source_ref_id == null).length === 5],
     ['3 quick notes', notes.length === 3],
     ['an overdue item exists', followUps.some((f) => effectiveStatus(f) === 'overdue')],
-    ['a due-today item exists', followUps.some((f) => f.follow_up_date === new Date().toISOString().slice(0, 10))],
+    ['a due-today item exists', followUps.some((f) => f.follow_up_date === todayISO())],
     ['a completed item exists', followUps.some((f) => f.status === 'completed')],
   ];
 

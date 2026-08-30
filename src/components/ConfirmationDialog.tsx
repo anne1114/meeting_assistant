@@ -37,11 +37,11 @@ export default function ConfirmationDialog({
         </>
       }
     >
-      <div className="flex items-start gap-3">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-50 text-red-600">
-          <AlertTriangle size={20} />
+      <div className="flex items-start gap-3.5">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-red-50 text-red-600">
+          <AlertTriangle size={22} />
         </div>
-        <p className="text-sm text-slate-600">{message}</p>
+        <p className="pt-1 text-sm leading-relaxed text-stone-600">{message}</p>
       </div>
     </Modal>
   );

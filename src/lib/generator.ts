@@ -1,5 +1,12 @@
 import { uid, nowISO } from './utils';
-import { supabase, asArray, asSingle } from './client';
+import { supabase, asArray, asSingle, useRemoteDb } from './client';
+import {
+  aiGenerateReports,
+  normalizeAiMinutes,
+  normalizeAiActions,
+  normalizeAiRaid,
+  normalizeAiStatus,
+} from './gemini';
 import type {
   Meeting,
   ActionItem,
@@ -107,15 +114,94 @@ function detectOwner(sentence: string, participants: string[]): string {
 
 function detectDueDate(sentence: string): string | null {
   const lower = sentence.toLowerCase();
-  const byDay = lower.match(/by\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday)/);
-  if (byDay) return byDay[1][0].toUpperCase() + byDay[1].slice(1);
-  if (lower.includes('by end of week')) return 'End of Week';
-  if (lower.includes('by next week')) return 'Next Week';
-  const slash = lower.match(/\b(\d{1,2})\/(\d{1,2})\b/);
-  if (slash) return `${slash[1]}/${slash[2]}`;
-  const month = lower.match(new RegExp(`\\b(${MONTHS.join('|')})[a-z]*\\.?\\s+(\\d{1,2})\\b`, 'i'));
-  if (month) return `${month[1][0].toUpperCase()}${month[1].slice(1)} ${month[2]}`;
+  const today = new Date();
+  const iso = (d: Date): string => {
+    const y = d.getFullYear();
+    const mo = String(d.getMonth() + 1).padStart(2, '0');
+    const da = String(d.getDate()).padStart(2, '0');
+    return `${y}-${mo}-${da}`;
+  };
+  const inDays = (days: number): Date => {
+    const d = new Date(today);
+    d.setDate(d.getDate() + days);
+    return d;
+  };
+  const endOfWeek = (): Date => {
+    const d = new Date(today);
+    d.setDate(today.getDate() + ((7 - today.getDay()) % 7));
+    return d;
+  };
+  const inMonth = (monthIdx: number, day: number): Date => {
+    let year = today.getFullYear();
+    if (monthIdx < today.getMonth()) year += 1;
+    return new Date(year, monthIdx, day);
+  };
+
+  const weekdays: Record<string, number> = {
+    sunday: 0,
+    monday: 1,
+    tuesday: 2,
+    wednesday: 3,
+    thursday: 4,
+    friday: 5,
+    saturday: 6,
+  };
+  const dayMatch = lower.match(/\b(sunday|monday|tuesday|wednesday|thursday|friday|saturday)\b/);
+  if (dayMatch) {
+    const target = weekdays[dayMatch[1]];
+    const diff = (target - today.getDay() + 7) % 7;
+    return iso(inDays(diff === 0 ? 7 : diff));
+  }
+
+  if (lower.includes('by next week') || lower.includes('next week')) {
+    return iso(inDays(7));
+  }
+
+  if (lower.includes('end of this month') || lower.includes('end of the month')) {
+    return iso(new Date(today.getFullYear(), today.getMonth() + 1, 0));
+  }
+
+  if (lower.includes('end of week') || lower.includes('this week')) {
+    return iso(endOfWeek());
+  }
+
+  const dateContext = /\b(?:by|before|due|deadline|on|within|for|need|submit|deliver|send|share|review|complete|ready|target|date)\b/.test(lower);
+  const monthNames = [
+    'january', 'february', 'march', 'april', 'may', 'june',
+    'july', 'august', 'september', 'october', 'november', 'december',
+  ];
+
+  if (dateContext) {
+    const monthMatch = lower.match(
+      new RegExp(`\\b(${monthNames.join('|')}|${MONTHS.join('|')})[a-z]*\\.?\\s+(\\d{1,2})(?:st|nd|rd|th)?\\b`, 'i')
+    );
+    if (monthMatch) {
+      const name = monthMatch[1].toLowerCase();
+      const idx = monthNames.findIndex((m) => name.startsWith(m.slice(0, 3)));
+      const day = parseInt(monthMatch[2], 10);
+      if (idx >= 0 && day >= 1 && day <= 31) return iso(inMonth(idx, day));
+    }
+
+    const slash = lower.match(/\b(\d{1,2})\/(\d{1,2})\b/);
+    if (slash) {
+      const mo = parseInt(slash[1], 10);
+      const da = parseInt(slash[2], 10);
+      if (mo >= 1 && mo <= 12 && da >= 1 && da <= 31) return iso(inMonth(mo - 1, da));
+    }
+  }
+
   return null;
+}
+
+export function toISODate(value: string | null | undefined): string | null {
+  if (typeof value !== 'string') return null;
+  const trimmed = value.trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return null;
+  const [y, m, d] = trimmed.split('-').map(Number);
+  if (y < 1900 || y > 2100 || m < 1 || m > 12 || d < 1 || d > 31) return null;
+  const dt = new Date(y, m - 1, d);
+  if (dt.getFullYear() !== y || dt.getMonth() !== m - 1 || dt.getDate() !== d) return null;
+  return trimmed;
 }
 
 function detectPriority(sentence: string): Priority {
@@ -255,6 +341,81 @@ export function generateOutputs(meeting: Meeting, selected: OutputType[]): Gener
   return out;
 }
 
+async function generateOutputsWithAi(meeting: Meeting, selected: OutputType[]): Promise<GeneratedOutputs | null> {
+  const text = [meeting.transcript, meeting.notes].filter(Boolean).join('\n');
+  if (!text.trim()) return null;
+
+  try {
+    const ai = await aiGenerateReports(text, selected);
+    const out: GeneratedOutputs = {};
+
+    if (selected.includes('minutes') && ai.minutes) {
+      const m = normalizeAiMinutes(ai.minutes);
+      out.minutes = {
+        id: uid(),
+        meeting_id: meeting.id,
+        objective: m.objective || `Discuss ${meeting.title} and align on next steps.`,
+        discussion_summary:
+          m.discussion_summary || 'The team reviewed the current state of the project and discussed the open items on the agenda.',
+        key_decisions: m.key_decisions.length > 0 ? m.key_decisions : ['No explicit decisions recorded in the transcript.'],
+        open_points: m.open_points.length > 0 ? m.open_points : ['No open points identified.'],
+        next_steps: m.next_steps.length > 0 ? m.next_steps : ['Follow up on discussed items before the next meeting.'],
+        created_at: nowISO(),
+      };
+    }
+
+    if (selected.includes('actions') && ai.actions) {
+      out.actions = normalizeAiActions(ai.actions).map((a) => ({
+        id: uid(),
+        meeting_id: meeting.id,
+        title: a.title,
+        owner: a.owner ?? '',
+        due_date: toISODate(a.due_date),
+        priority: a.priority ?? 'medium',
+        status: 'open' as ActionStatus,
+        follow_up_note: '',
+        criticality: a.criticality ?? 'medium',
+        created_at: nowISO(),
+      }));
+    }
+
+    if (selected.includes('raid') && ai.raid) {
+      out.raid = normalizeAiRaid(ai.raid).map((r) => ({
+        id: uid(),
+        meeting_id: meeting.id,
+        type: r.type,
+        description: r.description,
+        impact: r.impact ?? '',
+        owner: r.owner ?? '',
+        mitigation: r.mitigation ?? '',
+        follow_up_required: false,
+        status: 'open' as ActionStatus,
+        criticality: r.criticality ?? 'medium',
+        created_at: nowISO(),
+      }));
+    }
+
+    if (selected.includes('status') && ai.status) {
+      const s = normalizeAiStatus(ai.status);
+      out.status = {
+        id: uid(),
+        meeting_id: meeting.id,
+        overall_status: s.overall_status,
+        progress_this_week: s.progress_this_week || 'The team continued work on the current sprint and made steady progress on the open items.',
+        in_progress: s.in_progress,
+        risks_blockers: s.risks_blockers,
+        next_steps: s.next_steps,
+        support_needed: s.support_needed,
+        created_at: nowISO(),
+      };
+    }
+
+    return out;
+  } catch {
+    return null;
+  }
+}
+
 interface RepositorySource {
   id: string;
   title: string;
@@ -262,6 +423,7 @@ interface RepositorySource {
   status: ActionStatus;
   criticality: Criticality;
   created_at: string;
+  due_date?: string | null;
 }
 
 async function pushToRepository(meetingId: string, type: FollowUp['type'], items: RepositorySource[]): Promise<void> {
@@ -279,7 +441,7 @@ async function pushToRepository(meetingId: string, type: FollowUp['type'], items
       item_title: i.title,
       type,
       assigned_to: i.owner,
-      follow_up_date: null,
+      follow_up_date: toISODate(i.due_date),
       status: i.status as FollowUp['status'],
       notes: '',
       source_ref_id: i.id,
@@ -293,7 +455,11 @@ async function pushToRepository(meetingId: string, type: FollowUp['type'], items
   }
 }
 
-export async function generateAndPersist(meetingId: string, selected: OutputType[]): Promise<void> {
+export async function generateAndPersist(
+  meetingId: string,
+  selected: OutputType[],
+  options?: { useAi?: boolean }
+): Promise<void> {
   const { data } = await supabase
     .from<Meeting>('meetings')
     .select()
@@ -302,7 +468,13 @@ export async function generateAndPersist(meetingId: string, selected: OutputType
   const meeting = asSingle(data);
   if (!meeting) return;
 
-  const out = generateOutputs(meeting, selected);
+  let out: GeneratedOutputs | null = null;
+  if (options?.useAi && useRemoteDb) {
+    out = await generateOutputsWithAi(meeting, selected);
+  }
+  if (!out) {
+    out = generateOutputs(meeting, selected);
+  }
 
   if (out.minutes) {
     await supabase.from('meeting_minutes').upsert([out.minutes], { onConflict: 'meeting_id' });
@@ -345,7 +517,7 @@ export async function saveActionToRepository(action: ActionItem): Promise<void> 
     item_title: action.title,
     type: 'Action',
     assigned_to: action.owner,
-    follow_up_date: null,
+    follow_up_date: toISODate(action.due_date),
     status: action.status as FollowUp['status'],
     notes: '',
     source_ref_id: action.id,
