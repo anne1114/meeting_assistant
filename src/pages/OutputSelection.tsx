@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ArrowLeft, FileText, ListChecks, AlertTriangle, ClipboardList, Check, Users, CalendarDays } from 'lucide-react';
 import { PageHeader, Spinner } from '../components/ui';
-import { supabase, asSingle } from '../lib/client';
+import { supabase, asSingle, useRemoteDb } from '../lib/client';
 import { navigate } from '../lib/router';
 import { generateAndPersist } from '../lib/generator';
 import { formatDate } from '../lib/utils';
@@ -13,7 +13,7 @@ const OUTPUTS: Array<{ key: OutputType; title: string; description: string; icon
     title: 'Meeting Minutes Generator',
     description: 'Structured minutes with objective, discussion summary, decisions, open points, and next steps.',
     icon: FileText,
-    color: 'bg-blue-50 text-blue-600',
+    color: 'bg-sky-50 text-sky-600',
   },
   {
     key: 'actions',
@@ -91,7 +91,7 @@ export default function OutputSelection({ meetingId }: { meetingId: string }) {
     setError('');
     setGenerating(true);
     try {
-      await generateAndPersist(meeting.id, selectedList);
+      await generateAndPersist(meeting.id, selectedList, { useAi: useRemoteDb });
       navigate(`/outputs/review/${meeting.id}`);
     } catch {
       setError('Failed to generate outputs. Please try again.');
@@ -129,32 +129,33 @@ export default function OutputSelection({ meetingId }: { meetingId: string }) {
         subtitle="Choose which AI outputs to generate from this meeting's content."
       />
 
-      <div className="mb-6 rounded-xl bg-gradient-to-br from-brand-600 to-brand-800 p-5 text-white shadow">
-        <p className="text-lg font-bold">{meeting.title}</p>
-        <p className="text-sm text-brand-100">{meeting.project_client} · {formatDate(meeting.meeting_date)}</p>
-        <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-brand-100">
-          <span className="flex items-center gap-1">
+      <div className="mb-6 rounded-2xl bg-gradient-to-br from-brand-600 to-brand-800 p-6 text-white shadow-lift">
+        <p className="text-xl font-bold tracking-tight">{meeting.title}</p>
+        <p className="mt-1 text-sm text-brand-100">{meeting.project_client} · {formatDate(meeting.meeting_date)}</p>
+        <div className="mt-4 flex flex-wrap items-center gap-2 text-sm text-brand-100">
+          <span className="flex items-center gap-1.5">
             <Users size={14} />
             {meeting.participants.length} participant{meeting.participants.length !== 1 ? 's' : ''}
           </span>
-          <span className="flex items-center gap-1">
+          <span className="flex items-center gap-1.5">
             <CalendarDays size={14} />
             {formatDate(meeting.meeting_date)}
           </span>
           {meeting.participants.map((p) => (
-            <span key={p} className="rounded-full bg-white/20 px-2 py-0.5 text-xs font-medium">
+            <span key={p} className="rounded-full bg-white/20 px-2.5 py-0.5 text-xs font-medium">
               {p}
             </span>
           ))}
         </div>
-        <div className="mt-3 flex gap-4 text-xs font-medium text-brand-100">
+        <div className="mt-4 flex gap-4 text-xs font-medium text-brand-100">
           <span>Transcript: {meeting.transcript ? 'Yes' : 'No'}</span>
           <span>Notes: {meeting.notes ? 'Yes' : 'No'}</span>
         </div>
       </div>
 
       {error && (
-        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+        <div className="animate-rise-in section-gap flex items-center gap-2 rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+          <AlertTriangle size={16} />
           {error}
         </div>
       )}
@@ -167,20 +168,20 @@ export default function OutputSelection({ meetingId }: { meetingId: string }) {
             <button
               key={output.key}
               onClick={() => toggle(output.key)}
-              className={`card relative p-5 text-left transition hover:shadow-md ${
-                isSelected ? 'ring-2 ring-brand-600' : ''
+              className={`card group relative p-6 text-left transition hover:-translate-y-0.5 hover:shadow-lift ${
+                isSelected ? 'ring-2 ring-brand-600 ring-offset-2 ring-offset-cream-100' : ''
               }`}
             >
               {isSelected && (
-                <span className="absolute right-3 top-3 flex h-6 w-6 items-center justify-center rounded-full bg-brand-600 text-white">
-                  <Check size={14} />
+                <span className="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full bg-brand-600 text-white shadow-soft">
+                  <Check size={15} />
                 </span>
               )}
-              <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${output.color}`}>
+              <div className={`icon-chip ${output.color}`}>
                 <Icon size={20} />
               </div>
-              <p className="mt-3 text-sm font-semibold text-slate-900">{output.title}</p>
-              <p className="mt-1 text-xs text-slate-500">{output.description}</p>
+              <p className="mt-3.5 text-sm font-semibold text-ink">{output.title}</p>
+              <p className="mt-1.5 text-xs leading-relaxed text-taupe">{output.description}</p>
             </button>
           );
         })}

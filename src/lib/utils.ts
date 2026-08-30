@@ -40,6 +40,13 @@ export function formatDate(iso: string | null | undefined): string {
   return d.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
 }
 
+export function formatShortDate(iso: string | null | undefined): string {
+  if (!iso) return '-';
+  const d = new Date(iso + 'T00:00:00');
+  if (isNaN(d.getTime())) return '-';
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
 export function isToday(iso: string | null | undefined): boolean {
   if (!iso) return false;
   return iso === todayISO();
@@ -111,7 +118,7 @@ export function dueDateClass(item: FollowUp): string {
   if (u === 'overdue') return 'font-semibold text-red-600';
   if (u === 'soon') return 'font-semibold text-amber-600';
   if (u === 'later') return 'text-emerald-600';
-  return 'text-slate-500';
+  return 'text-stone-500';
 }
 
 export const STATUS_BADGE_CLASSES: Record<string, string> = {
@@ -119,23 +126,23 @@ export const STATUS_BADGE_CLASSES: Record<string, string> = {
   in_progress: 'bg-amber-50 text-amber-700',
   done: 'bg-emerald-50 text-emerald-700',
   blocked: 'bg-red-50 text-red-700',
-  to_do: 'bg-slate-100 text-slate-700',
+  to_do: 'bg-stone-100 text-stone-700',
   pending: 'bg-amber-50 text-amber-700',
   completed: 'bg-emerald-50 text-emerald-700',
   overdue: 'bg-red-50 text-red-700',
-  draft: 'bg-slate-100 text-slate-600',
+  draft: 'bg-stone-100 text-stone-600',
   reviewed: 'bg-emerald-50 text-emerald-700',
 };
 
 export const CRITICALITY_BADGE_CLASSES: Record<Criticality, string> = {
-  low: 'bg-slate-100 text-slate-600',
+  low: 'bg-stone-100 text-stone-600',
   medium: 'bg-blue-50 text-blue-700',
   high: 'bg-amber-50 text-amber-700',
   critical: 'bg-red-50 text-red-700',
 };
 
 export const PRIORITY_BADGE_CLASSES: Record<Priority, string> = {
-  low: 'bg-slate-100 text-slate-600',
+  low: 'bg-stone-100 text-stone-600',
   medium: 'bg-amber-50 text-amber-700',
   high: 'bg-red-50 text-red-700',
 };

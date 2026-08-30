@@ -13,8 +13,8 @@ interface ViewItemModalProps {
 function DetailRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div>
-      <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">{label}</p>
-      <div className="mt-1 text-sm text-slate-800">{children}</div>
+      <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-taupe">{label}</p>
+      <div className="mt-1 text-sm font-medium text-stone-700">{children}</div>
     </div>
   );
 }
@@ -44,7 +44,7 @@ export default function ViewItemModal({ open, onClose, item, meetingTitle }: Vie
                   ? 'bg-emerald-50 text-emerald-700'
                   : item.type === 'RAID'
                     ? 'bg-red-50 text-red-700'
-                    : 'bg-blue-50 text-blue-700'
+                    : 'bg-sky-50 text-sky-700'
               }
             >
               {item.type}

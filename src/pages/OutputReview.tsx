@@ -92,7 +92,7 @@ export default function OutputReview({ meetingId }: { meetingId: string }) {
       const matchesDate =
         dateFilter === 'all' ||
         (dateFilter === 'week' && isThisWeek(m.meeting_date)) ||
-        (dateFilter === 'month' && m.meeting_date.slice(0, 7) === todayISO().slice(0, 7));
+        (dateFilter === 'month' && !!m.meeting_date && m.meeting_date.slice(0, 7) === todayISO().slice(0, 7));
       const matchesPerson = !personFilter || m.participants.includes(personFilter);
       return matchesSearch && matchesDate && matchesPerson;
     });
@@ -114,9 +114,7 @@ export default function OutputReview({ meetingId }: { meetingId: string }) {
   const handleRegenerate = async () => {
     if (!data?.meeting) return;
     setRegenerating(true);
-    const selected: OutputType[] =
-      data.meeting.selected_outputs.length > 0 ? data.meeting.selected_outputs : ['minutes', 'actions', 'raid', 'status'];
-    await generateAndPersist(data.meeting.id, selected);
+    await generateAndPersist(data.meeting.id, ['minutes', 'actions', 'raid', 'status']);
     setRegenerating(false);
     void load();
   };
@@ -151,12 +149,12 @@ export default function OutputReview({ meetingId }: { meetingId: string }) {
   const { meeting } = data;
 
   const meetingsPanel = (
-    <div className="card mb-5 p-4">
-      <div className="flex flex-wrap items-end gap-3">
+    <div className="card section-gap p-6">
+      <div className="flex flex-wrap items-end gap-x-4 gap-y-3">
         <div className="min-w-[220px] flex-1">
           <label className="label">Search Meetings</label>
           <div className="relative">
-            <Search size={16} className="pointer-events-none absolute left-3 top-2.5 text-slate-400" />
+            <Search size={16} className="pointer-events-none absolute left-3 top-2.5 text-stone-400" />
             <input
               className="input pl-9"
               value={search}
@@ -186,25 +184,30 @@ export default function OutputReview({ meetingId }: { meetingId: string }) {
         </div>
       </div>
       {(search.trim() || dateFilter !== 'all' || personFilter) && (
-        <p className="mt-3 border-t border-slate-100 pt-3 text-xs font-semibold uppercase tracking-wide text-slate-400">
+        <p className="mt-4 inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-taupe">
+          <span className="h-px w-4 bg-brand-600/50" />
           Search results
         </p>
       )}
-      <div className={search.trim() || dateFilter !== 'all' || personFilter ? 'mt-2' : 'mt-3 border-t border-slate-100 pt-3'}>
-        {filteredMeetings.length === 0 ? (
-          <p className="text-sm text-slate-500">No meetings found</p>
+      <div className="mt-4 border-t border-stone-100 pt-3">
+        {!search.trim() && dateFilter === 'all' && !personFilter ? (
+          <p className="text-sm text-stone-500">
+            Search for a meeting by title or participant to browse past sessions.
+          </p>
+        ) : filteredMeetings.length === 0 ? (
+          <p className="text-sm text-stone-500">No meetings found</p>
         ) : (
-          <ul className="space-y-1">
+          <ul className="space-y-0.5">
             {filteredMeetings.slice(0, 5).map((m) => (
               <li key={m.id}>
                 <button
-                  className={`w-full rounded-lg px-3 py-2 text-left text-sm transition hover:bg-slate-100 ${
-                    m.id === meeting?.id ? 'bg-brand-50 font-medium text-brand-700' : 'text-slate-700'
+                  className={`w-full rounded-lg px-3 py-2.5 text-left text-sm transition hover:bg-cream-100 ${
+                    m.id === meeting?.id ? 'bg-brand-50 font-medium text-brand-700' : 'text-stone-700'
                   }`}
                   onClick={() => navigate(`/outputs/review/${m.id}`)}
                 >
                   <span>
-                    {m.title} <span className="text-xs text-slate-400">· {m.project_client} · {formatDate(m.meeting_date)}</span>
+                    {m.title} <span className="text-xs text-stone-400">· {m.project_client} · {formatDate(m.meeting_date)}</span>
                   </span>
                   {m.outputs_generated && m.selected_outputs.length > 0 && (
                     <span className="mt-1 flex flex-wrap gap-1">
@@ -229,16 +232,16 @@ export default function OutputReview({ meetingId }: { meetingId: string }) {
       <div className="mx-auto max-w-6xl">
         <PageHeader title="Output Review Workspace" subtitle="Review and refine AI-generated meeting outputs." />
         {allMeetings.length === 0 ? (
-          <div className="card mb-5 flex flex-col items-center gap-3 p-10 text-center">
-            <p className="text-sm font-medium text-slate-700">No meetings yet.</p>
-            <p className="text-xs text-slate-500">Create a meeting with a transcript, generate outputs, then review them here.</p>
+          <div className="card section-gap flex flex-col items-center gap-3 p-10 text-center">
+            <p className="text-sm font-medium text-stone-700">No meetings yet.</p>
+            <p className="text-xs text-stone-500">Create a meeting with a transcript, generate outputs, then review them here.</p>
             <button className="btn-primary" onClick={() => navigate('/meetings/new')}>
               Create a Meeting
             </button>
           </div>
         ) : (
           <>
-            <p className="mb-3 text-sm text-slate-500">Select a meeting to view its generated documents.</p>
+            <p className="mb-3 text-sm text-stone-500">Select a meeting to view its generated documents.</p>
             {meetingsPanel}
           </>
         )}
@@ -263,18 +266,18 @@ export default function OutputReview({ meetingId }: { meetingId: string }) {
 
       {meetingsPanel}
 
-      <div className="card mb-5 p-5">
-        <div className="flex flex-wrap items-start justify-between gap-4">
+      <div className="card section-gap overflow-hidden">
+        <div className="flex flex-wrap items-start justify-between gap-4 px-6 py-5">
           <div className="flex items-start gap-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-brand-100 text-brand-700">
+            <div className="icon-chip bg-brand-100 text-brand-700">
               <ClipboardList size={24} />
             </div>
             <div>
-              <p className="text-lg font-bold text-slate-900">{meeting.title}</p>
-              <p className="text-sm text-slate-500">
+              <p className="text-lg font-semibold tracking-[-0.01em] text-ink">{meeting.title}</p>
+              <p className="text-sm text-stone-500">
                 {meeting.project_client} · {formatDate(meeting.meeting_date)}
               </p>
-              <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+              <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-stone-500">
                 <span className="flex items-center gap-1">
                   <Users size={14} />
                   {meeting.participants.length} participant{meeting.participants.length !== 1 ? 's' : ''}
@@ -287,7 +290,7 @@ export default function OutputReview({ meetingId }: { meetingId: string }) {
               </div>
               <div className="mt-2 flex flex-wrap gap-1.5">
                 {meeting.participants.map((p) => (
-                  <span key={p} className="badge bg-slate-100 text-slate-600">
+                  <span key={p} className="badge bg-cream-200 text-stone-700">
                     {p}
                   </span>
                 ))}
@@ -315,16 +318,17 @@ export default function OutputReview({ meetingId }: { meetingId: string }) {
               Go to Repository
             </button>
           </div>
+          </div>
         </div>
-      </div>
 
       {!meeting.outputs_generated && (
-        <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800">
+        <div className="animate-rise-in section-gap flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800">
+          <AlertTriangle size={16} />
           Outputs haven't been generated yet. Click Regenerate to create them from the meeting content.
         </div>
       )}
 
-      <div className="mb-4 flex gap-1 border-b border-slate-200">
+      <div className="section-gap flex gap-1 border-b border-stone-200">
         {tabs.map((t) => {
           const Icon = t.icon;
           const active = tab === t.key;
@@ -337,7 +341,7 @@ export default function OutputReview({ meetingId }: { meetingId: string }) {
               <Icon size={16} />
               {t.label}
               {typeof t.count === 'number' && (
-                <span className={`badge px-1.5 py-0 text-[10px] ${active ? 'bg-brand-100 text-brand-700' : 'bg-slate-100 text-slate-500'}`}>
+                <span className={`badge px-1.5 py-0 text-[10px] ${active ? 'bg-brand-100 text-brand-700' : 'bg-stone-100 text-stone-500'}`}>
                   {t.count}
                 </span>
               )}

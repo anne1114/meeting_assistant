@@ -16,17 +16,17 @@ export default function Modal({ open, onClose, title, size = 'md', children, foo
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="animate-fade-in absolute inset-0 bg-black/40" onClick={onClose} />
-      <div className={`animate-scale-in card relative flex w-full flex-col ${SIZES[size]}`}>
-        <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
-          <h3 className="text-base font-semibold text-slate-900">{title}</h3>
+      <div className="animate-fade-in absolute inset-0 bg-stone-900/40 backdrop-blur-[2px]" onClick={onClose} />
+      <div className={`animate-scale-in card relative flex w-full flex-col shadow-lift ${SIZES[size]}`}>
+        <div className="flex items-center justify-between border-b border-stone-100 px-6 py-4">
+          <h3 className="font-display text-lg font-medium tracking-[-0.01em] text-ink">{title}</h3>
           <button className="btn-icon" onClick={onClose} aria-label="Close">
             <X size={18} />
           </button>
         </div>
-        <div className="max-h-[70vh] overflow-y-auto px-5 py-4">{children}</div>
+        <div className="max-h-[70vh] overflow-y-auto px-6 py-5">{children}</div>
         {footer && (
-          <div className="flex items-center justify-end gap-2 border-t border-slate-100 px-5 py-4">{footer}</div>
+          <div className="flex items-center justify-end gap-2.5 border-t border-stone-100 bg-cream-50/60 px-6 py-4">{footer}</div>
         )}
       </div>
     </div>

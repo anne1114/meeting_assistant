@@ -113,8 +113,8 @@ export default function RaidTab({ meeting, raid, onChanged }: RaidTabProps) {
 
   return (
     <div className="card overflow-hidden">
-      <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
-        <p className="text-sm font-semibold text-slate-500">RAID Items ({raid.length})</p>
+      <div className="flex items-center justify-between border-b border-stone-100 bg-cream-50/40 px-6 py-4">
+        <p className="section-title">RAID Items ({raid.length})</p>
         <button className="btn-primary" onClick={openAdd}>
           <Plus size={16} />
           Add RAID Item
@@ -133,7 +133,7 @@ export default function RaidTab({ meeting, raid, onChanged }: RaidTabProps) {
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-slate-100">
+              <tr className="border-b border-stone-100">
                 <th className="th">Type</th>
                 <th className="th">Description</th>
                 <th className="th">Impact</th>
@@ -145,7 +145,7 @@ export default function RaidTab({ meeting, raid, onChanged }: RaidTabProps) {
             </thead>
             <tbody>
               {raid.map((item) => (
-                <tr key={item.id} className="border-b border-slate-50 align-top hover:bg-slate-50">
+                <tr key={item.id} className="border-b border-stone-50 align-top hover:bg-cream-50">
                   <td className="td whitespace-nowrap">
                     <RaidTypeBadge type={item.type} />
                   </td>
@@ -153,14 +153,14 @@ export default function RaidTab({ meeting, raid, onChanged }: RaidTabProps) {
                     <p className="text-sm">{item.description}</p>
                   </td>
                   <td className="td max-w-[160px]">
-                    <p className="text-xs text-slate-500">{item.impact || '—'}</p>
+                    <p className="text-xs text-stone-500">{item.impact || '—'}</p>
                   </td>
                   <td className="td whitespace-nowrap">{item.owner || '—'}</td>
                   <td className="td max-w-[160px]">
-                    <p className="text-xs text-slate-500">{item.mitigation || '—'}</p>
+                    <p className="text-xs text-stone-500">{item.mitigation || '—'}</p>
                   </td>
                   <td className="td">
-                    <span className={`badge ${item.follow_up_required ? 'bg-amber-50 text-amber-700' : 'bg-slate-100 text-slate-500'}`}>
+                    <span className={`badge ${item.follow_up_required ? 'bg-amber-50 text-amber-700' : 'bg-stone-100 text-stone-500'}`}>
                       {item.follow_up_required ? 'Yes' : 'No'}
                     </span>
                   </td>
@@ -172,7 +172,7 @@ export default function RaidTab({ meeting, raid, onChanged }: RaidTabProps) {
                       <button className="btn-icon" onClick={() => openEdit(item)} aria-label="Edit RAID item" title="Edit">
                         <Pencil size={16} />
                       </button>
-                      <button className="btn-icon text-red-500 hover:bg-red-50" onClick={() => remove(item)} aria-label="Delete RAID item" title="Delete">
+                      <button className="btn-icon-danger" onClick={() => remove(item)} aria-label="Delete RAID item" title="Delete">
                         <Trash2 size={16} />
                       </button>
                     </div>
@@ -258,10 +258,10 @@ export default function RaidTab({ meeting, raid, onChanged }: RaidTabProps) {
             </select>
           </div>
           <div className="sm:col-span-2">
-            <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
+            <label className="flex items-center gap-2 text-sm font-medium text-stone-700">
               <input
                 type="checkbox"
-                className="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+                className="h-4 w-4 rounded border-stone-300 text-brand-600 focus:ring-brand-500"
                 checked={form.follow_up_required}
                 onChange={(e) => setForm((f) => ({ ...f, follow_up_required: e.target.checked }))}
               />

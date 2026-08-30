@@ -6,7 +6,7 @@ import ConfirmationDialog from '../components/ConfirmationDialog';
 import RepositoryItemModal from '../components/RepositoryItemModal';
 import { supabase, asArray } from '../lib/client';
 import { navigate } from '../lib/router';
-import { formatDate, isThisWeek, truncate, parseCSV, joinCSV } from '../lib/utils';
+import { formatShortDate, isThisWeek, truncate, parseCSV, joinCSV } from '../lib/utils';
 import type { Meeting, ActionItem, RaidItem, MeetingMinutes, StatusReport, FollowUp } from '../lib/types';
 
 const ITEMS_PER_PAGE = 5;
@@ -133,7 +133,7 @@ export default function Meetings({ week }: { week: string | null }) {
       />
 
       {isFiltered && (
-        <div className="mb-4 flex flex-wrap items-center gap-3">
+        <div className="section-gap flex flex-wrap items-center gap-3">
           <button className="btn-secondary" onClick={() => navigate('/dashboard')}>
             <ArrowLeft size={16} />
             Back to Dashboard
@@ -168,63 +168,59 @@ export default function Meetings({ week }: { week: string | null }) {
         />
       ) : (
         <div className="card overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-slate-100">
-                  <th className="th">Title</th>
-                  <th className="th">People Involved</th>
-                  <th className="th">Date</th>
-                  <th className="th">Transcript</th>
-                  <th className="th">Remarks</th>
-                  <th className="th text-right">Actions</th>
+          <table className="w-full table-fixed">
+            <thead>
+              <tr className="border-b border-stone-100">
+                <th className="th w-[30%]">Title</th>
+                <th className="th w-[15%]">People</th>
+                <th className="th w-[10%]">Date</th>
+                <th className="th w-[22%]">Remarks</th>
+                <th className="th w-[23%] text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pageMeetings.map((m) => (
+                <tr
+                  key={m.id}
+                  onClick={() => navigate(`/outputs/review/${m.id}`)}
+                  className="cursor-pointer border-b border-stone-50 transition hover:bg-cream-50"
+                >
+                  <td className="td min-w-0">
+                    <p className="truncate font-medium text-ink" title={m.title}>{m.title}</p>
+                    <p className="truncate text-xs text-stone-500" title={m.project_client}>{m.project_client}</p>
+                  </td>
+                  <td className="td min-w-0">
+                    <p className="truncate text-xs text-stone-500" title={joinCSV(m.participants)}>{joinCSV(m.participants)}</p>
+                  </td>
+                  <td className="td whitespace-nowrap text-[13px] text-stone-500">{formatShortDate(m.meeting_date)}</td>
+                  <td className="td min-w-0">
+                    <p className="truncate text-xs text-stone-500" title={remarksFor(m)}>{remarksFor(m)}</p>
+                  </td>
+                  <td className="td" onClick={(e) => e.stopPropagation()}>
+                    <div className="flex items-center justify-end gap-1 whitespace-nowrap">
+                      <button className="btn-icon" onClick={() => navigate(`/outputs/review/${m.id}`)} aria-label="View outputs" title="View">
+                        <Eye size={16} />
+                      </button>
+                      <button className="btn-icon" onClick={() => setAddToRepo(m)} aria-label="Add to repository" title="Add to Repository">
+                        <ArrowUpRight size={16} />
+                      </button>
+                      <button className="btn-icon" onClick={() => setRegenerating(m)} aria-label="Regenerate outputs" title="Regenerate Outputs">
+                        <RefreshCw size={16} />
+                      </button>
+                      <button className="btn-icon" onClick={() => openEdit(m)} aria-label="Edit meeting" title="Edit">
+                        <Pencil size={16} />
+                      </button>
+                      <button className="btn-icon-danger" onClick={() => setDeleting(m)} aria-label="Delete meeting" title="Delete">
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {pageMeetings.map((m) => (
-                  <tr
-                    key={m.id}
-                    onClick={() => navigate(`/outputs/review/${m.id}`)}
-                    className="cursor-pointer border-b border-slate-50 transition hover:bg-slate-50"
-                  >
-                    <td className="td">
-                      <p className="font-medium text-slate-900">{m.title}</p>
-                      <p className="text-xs text-slate-500">{m.project_client}</p>
-                    </td>
-                    <td className="td">
-                      <p className="max-w-[180px] truncate text-xs text-slate-500">{joinCSV(m.participants)}</p>
-                    </td>
-                    <td className="td whitespace-nowrap">{formatDate(m.meeting_date)}</td>
-                    <td className="td">{m.transcript ? 'Yes' : 'No'}</td>
-                    <td className="td">
-                      <p className="max-w-[200px] truncate text-xs text-slate-500">{remarksFor(m)}</p>
-                    </td>
-                    <td className="td" onClick={(e) => e.stopPropagation()}>
-                      <div className="flex items-center justify-end gap-0.5">
-                        <button className="btn-icon" onClick={() => navigate(`/outputs/review/${m.id}`)} aria-label="View outputs" title="View">
-                          <Eye size={16} />
-                        </button>
-                        <button className="btn-icon" onClick={() => setAddToRepo(m)} aria-label="Add to repository" title="Add to Repository">
-                          <ArrowUpRight size={16} />
-                        </button>
-                        <button className="btn-icon" onClick={() => setRegenerating(m)} aria-label="Regenerate outputs" title="Regenerate Outputs">
-                          <RefreshCw size={16} />
-                        </button>
-                        <button className="btn-icon" onClick={() => openEdit(m)} aria-label="Edit meeting" title="Edit">
-                          <Pencil size={16} />
-                        </button>
-                        <button className="btn-icon text-red-500 hover:bg-red-50" onClick={() => setDeleting(m)} aria-label="Delete meeting" title="Delete">
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <div className="flex items-center justify-between border-t border-slate-100 px-5 py-3">
-            <p className="text-sm text-slate-500">
+              ))}
+            </tbody>
+          </table>
+          <div className="flex items-center justify-between border-t border-stone-100 px-6 py-3.5">
+            <p className="text-sm text-stone-500">
               Page {page} of {totalPages} · {visible.length} meeting{visible.length !== 1 ? 's' : ''}
             </p>
             <div className="flex items-center gap-2">
